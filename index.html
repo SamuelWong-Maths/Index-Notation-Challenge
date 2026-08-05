@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Prime Factorization Challenge</title>
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --secondary: #10B981;
+            --danger: #EF4444;
+            --background: #F3F4F6;
+            --text: #1F2937;
+            --card: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            text-align: center;
+            margin: 0;
+            padding: 8px;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden; 
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 480px; 
+            height: 96vh; 
+            background: var(--card);
+            padding: 12px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--primary);
+            margin: 0 0 6px 0;
+            font-size: 1.3rem; 
+        }
+
+        /* --- Stats Layout Optimized for Mobile and Tablet --- */
+        .stats-panel {
+            background: var(--primary);
+            color: white;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin-bottom: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2px 0;
+        }
+
+        .score-highlight {
+            color: #FCD34D;
+            font-size: 0.95rem;
+        }
+
+        .record-box {
+            font-size: 0.75rem;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 1px 6px;
+            border-radius: 4px;
+        }
+
+        /* --- Live Round Context Layout --- */
+        .live-context-row {
+            display: none; 
+            justify-content: flex-end;
+            width: 100%;
+            margin-bottom: 4px;
+        }
+
+        .mistakes-box {
+            background: #FEE2E2;
+            color: #DC2626;
+            border: 1px solid #FCA5A5;
+            padding: 2px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .level-controls button {
+            background-color: #E5E7EB;
+            border: none;
+            padding: 6px 12px;
+            margin: 2px;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: bold;
+        }
+
+        .level-controls button.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* --- Active Game Area (Mobile Fluid Stack Layout) --- */
+        #active-game-area {
+            display: none; 
+            flex-direction: column; 
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 5px 0;
+            flex-grow: 1; 
+            overflow-y: auto;
+        }
+
+        #number-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .original-number {
+            font-size: 0.9rem;
+            color: #6B7280;
+            margin-bottom: 1px;
+        }
+
+        .number-display {
+            font-size: 2.6rem;
+            font-weight: bold;
+            color: var(--text);
+            line-height: 1;
+        }
+
+        /* --- Short Division Layout Fixes --- */
+        #division-column {
+            min-width: 90px;
+            flex-shrink: 0; /* Prevents column from being squeezed */
+        }
+
+        #short-division-area {
+            display: inline-block;
+        }
+
+        .sd-grid {
+            display: inline-grid;
+            grid-template-columns: max-content max-content; 
+            row-gap: 2px;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.4rem; 
+            color: var(--text);
+            text-align: left;
+            white-space: nowrap; /* Prevents text from breaking */
+        }
+
+        .sd-divisor {
+            text-align: right;
+            padding-right: 4px;
+            white-space: nowrap;
+        }
+
+        .sd-dividend {
+            text-align: right;
+            padding-left: 4px;
+            padding-right: 8px; 
+            border-bottom: 2px solid var(--text);
+            white-space: nowrap;
+        }
+
+        .sd-final {
+            text-align: right;
+            padding-right: 8px;
+            padding-top: 1px;
+            white-space: nowrap;
+        }
+
+        /* --- Prime Pad Grid Compacted for Mobile Keyboards --- */
+        #prime-pad {
+            display: none; 
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-top: 5px;
+        }
+
+        .prime-btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px; 
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 3px 4px rgba(0,0,0,0.1);
+        }
+
+        /* --- Messages and End Results --- */
+        #message-area {
+            min-height: 24px;
+            margin-top: 4px;
+            font-size: 0.95rem;
+            font-weight: bold;
+        }
+
+        .success-text { color: var(--secondary); }
+        .error-text { color: var(--danger); }
+        
+        #final-results-area {
+            display: none;
+            flex-direction: column; 
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 8px auto;
+            width: 100%;
+        }
+
+        .math-result {
+            font-size: 1.2rem;
+            color: var(--primary);
+            padding: 8px 16px;
+            background: #EEF2FF;
+            border-radius: 8px;
+            width: 100%;
+        }
+
+        .final-sd-wrapper {
+            background: #F9FAFB;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid #E5E7EB;
+            display: inline-block;
+            flex-shrink: 0; /* Prevents the math box from squishing this on iPads */
+        }
+
+        .aligned-math {
+            display: table;
+            margin: 0 auto;
+            text-align: left;
+        }
+
+        .math-row { display: table-row; }
+        
+        .math-col-left {
+            display: table-cell;
+            text-align: right;
+            padding-right: 8px;
+        }
+
+        .math-col-right { display: table-cell; }
+
+        .action-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 10px auto;
+            display: block;
+        }
+
+        #ready-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text);
+            margin: 20px 10px;
+            padding: 12px;
+            background: #FEF3C7;
+            border: 2px dashed #F59E0B;
+            border-radius: 8px;
+        }
+
+        /* --- Chatbot Modal Overlay Customizations --- */
+        #chatbot-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(31, 41, 55, 0.7);
+            border-radius: 15px;
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .chat-box {
+            background: white;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .chat-content {
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .chat-bubble {
+            background: #F3F4F6;
+            padding: 10px;
+            border-radius: 4px 12px 12px 12px;
+            font-size: 0.85rem;
+            line-height: 1.3;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #4B5563;
+        }
+
+        .form-group input, .form-group select {
+            padding: 8px;
+            font-size: 0.95rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+        }
+
+        .chat-submit-btn {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* iPad and wider screens desktop optimization */
+        @media (min-width: 600px) {
+            #game-container {
+                max-width: 820px;
+            }
+            h1 { font-size: 1.8rem; }
+            .stats-panel { font-size: 0.95rem; }
+            #active-game-area { flex-direction: row; gap: 50px; } 
+            .number-display { font-size: 3.5rem; }
+            .sd-grid { font-size: 1.9rem; }
+            .prime-btn { padding: 14px; font-size: 1.4rem; }
+            #ready-display { font-size: 1.6rem; }
+            #final-results-area { flex-direction: row; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <h1>Index Notation Challenge</h1>
+    
+    <div class="stats-panel">
+        <div class="stats-row">
+            <div>🌟 Score: <span id="total-score" class="score-highlight">0</span></div>
+            <div>🏆 Runs &rarr; L1: <span id="score-l1">0</span> | L2: <span id="score-l2">0</span> | L3: <span id="score-l3">0</span></div>
+        </div>
+        <div class="stats-row">
+            <div>⏱️ Timer: <span id="timer">0.0</span>s</div>
+            <div class="record-box">⚡ Best: L1: <span id="rec-l1">-</span> | L2: <span id="rec-l2">-</span> | L3: <span id="rec-l3">-</span></div>
+        </div>
+    </div>
+
+    <div class="live-context-row" id="mistakes-container">
+        <div class="mistakes-box">❤️ Chance left: <span id="lives">1</span></div>
+    </div>
+
+    <div class="level-controls" id="level-selection">
+        <button id="btn-lvl1" class="active" onclick="selectLevel(1)">Level One</button>
+        <button id="btn-lvl2" onclick="selectLevel(2)">Level Two</button>
+        <button id="btn-lvl3" onclick="selectLevel(3)">Level Three</button>
+    </div>
+
+    <button id="start-btn" class="action-btn" onclick="startRound()">Start Game</button>
+
+    <div id="ready-display">Score at least 15 marks to collect your prize!</div>
+
+    <div id="active-game-area">
+        <div id="number-column">
+            <div class="original-number" id="original-display">Target: -</div>
+            <div class="number-display" id="current-display">-</div>
+        </div>
+        <div id="division-column">
+            <div id="short-division-area"></div>
+        </div>
+    </div>
+    
+    <div id="final-results-area"></div>
+
+    <div id="message-area"></div>
+    <button id="next-btn" class="action-btn" style="display: none;" onclick="resetForNewRound()">Next Round ➔</button>
+
+    <div id="prime-pad"></div>
+
+    <div id="chatbot-overlay">
+        <div class="chat-box">
+            <div class="chat-header">🤖 Prize Coordinator Bot</div>
+            <div class="chat-content">
+                <div class="chat-bubble">
+                    Congratulations! You have scored 15 marks! Enter your information below.
+                </div>
+                
+                <div class="form-group">
+                    <label for="student-name">Full Name</label>
+                    <input type="text" id="student-name" placeholder="Enter your name">
+                </div>
+
+                <div class="form-group">
+                    <label for="student-class">Class</label>
+                    <select id="student-class">
+                        <option value="1A">1A</option>
+                        <option value="1B">1B</option>
+                        <option value="1C">1C</option>
+                        <option value="1D">1D</option>
+                        <option value="1E">1E</option>
+                        <option value="1F">1F</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="student-number">Class Number</label>
+                    <select id="student-number">
+                        </select>
+                </div>
+
+                <button class="chat-submit-btn" id="chat-submit" onclick="submitPrizeForm()">Submit Data ➔</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Game Variables ---
+    let currentLevel = 1;
+    let originalNumber = 0;
+    let currentNumber = 0;
+    let mistakesLeft = 1;
+    let usedFactors = [];
+    let divisionSteps = []; 
+    let totalScore = 0;
+    let databaseSavedFlag = false; 
+    
+    let successL1 = 0; let successL2 = 0; let successL3 = 0;
+    let recordL1 = null; let recordL2 = null; let recordL3 = null;
+    
+    let startTime;
+    let timerInterval;
+
+    window.addEventListener("DOMContentLoaded", () => {
+        const numDropdown = document.getElementById("student-number");
+        for (let i = 1; i <= 38; i++) {
+            let opt = document.createElement("option");
+            opt.value = i;
+            opt.innerText = `Number ${i}`;
+            numDropdown.appendChild(opt);
+        }
+    });
+
+    function isPrime(num) {
+        if (num <= 1) return false;
+        if (num <= 3) return true;
+        if (num % 2 === 0 || num % 3 === 0) return false;
+        for (let i = 5; i * i <= num; i += 6) {
+            if (num % i === 0 || num % (i + 2) === 0) return false;
+        }
+        return true;
+    }
+
+    function getUniquePrimeFactors(num) {
+        let factors = new Set();
+        let d = 2;
+        while (num > 1) {
+            while (num % d === 0) {
+                factors.add(d);
+                num /= d;
+            }
+            d++;
+            if (d * d > num) {
+                if (num > 1) factors.add(num);
+                break;
+            }
+        }
+        return Array.from(factors);
+    }
+
+    function generateRandomPrimes(count, excludeSet, maxVal) {
+        let primes = [];
+        let attempt = 2;
+        while (primes.length < count && attempt < 10000) {
+            let candidate = Math.floor(Math.random() * maxVal) + 2;
+            if (isPrime(candidate) && !excludeSet.has(candidate) && !primes.includes(candidate)) {
+                primes.push(candidate);
+            }
+            attempt++;
+        }
+        return primes;
+    }
+
+    function generateValidNumber(min, max) {
+        let num;
+        do {
+            num = Math.floor(Math.random() * (max - min + 1)) + min;
+        } while (!(num % 2 === 0 || num % 3 === 0 || num % 5 === 0));
+        return num;
+    }
+
+    function selectLevel(lvl) {
+        currentLevel = lvl;
+        document.getElementById('btn-lvl1').classList.toggle('active', lvl === 1);
+        document.getElementById('btn-lvl2').classList.toggle('active', lvl === 2);
+        document.getElementById('btn-lvl3').classList.toggle('active', lvl === 3);
+    }
+
+    function resetForNewRound() {
+        document.getElementById('start-btn').style.display = "block";
+        document.getElementById('next-btn').style.display = "none";
+        document.getElementById('level-selection').style.display = "block";
+        
+        document.getElementById('prime-pad').style.display = "none";
+        document.getElementById('final-results-area').style.display = "none";
+        document.getElementById('active-game-area').style.display = "none";
+        document.getElementById('mistakes-container').style.display = "none"; 
+        document.getElementById('ready-display').style.display = "block";
+        
+        document.getElementById('original-display').innerText = "Target: -";
+        document.getElementById('short-division-area').innerHTML = "";
+        document.getElementById('message-area').innerHTML = "";
+        document.getElementById('timer').innerText = "0.0";
+        
+        mistakesLeft = 1;
+        document.getElementById('lives').innerText = mistakesLeft;
+    }
+
+    function startRound() {
+        document.getElementById('start-btn').style.display = "none";
+        document.getElementById('level-selection').style.display = "none";
+        document.getElementById('next-btn').style.display = "none";
+        document.getElementById('final-results-area').style.display = "none";
+        document.getElementById('ready-display').style.display = "none";
+        
+        document.getElementById('prime-pad').style.display = "grid";
+        document.getElementById('active-game-area').style.display = "flex";
+        document.getElementById('mistakes-container').style.display = "flex"; 
+        
+        mistakesLeft = 1;
+        usedFactors = [];
+        divisionSteps = [];
+        document.getElementById('lives').innerText = mistakesLeft;
+        document.getElementById('message-area').innerHTML = "";
+        document.getElementById('short-division-area').innerHTML = "";
+        
+        if (currentLevel === 1) {
+            originalNumber = generateValidNumber(10, 99);
+        } else if (currentLevel === 2) {
+            originalNumber = generateValidNumber(100, 500);
+        } else {
+            originalNumber = generateValidNumber(501, 3000);
+        }
+        
+        currentNumber = originalNumber;
+        updateDisplay();
+
+        let actualFactors = getUniquePrimeFactors(originalNumber);
+        let baseSet = [2, 3, 5]; 
+        let combinedSet = new Set([...baseSet, ...actualFactors]);
+        
+        let maxDistractor = currentLevel === 1 ? 40 : (currentLevel === 2 ? 90 : 250);
+        let distractors = generateRandomPrimes(12 - combinedSet.size, combinedSet, maxDistractor);
+        
+        let allButtons = [...Array.from(combinedSet), ...distractors];
+        allButtons.sort((a, b) => a - b); 
+
+        const pad = document.getElementById('prime-pad');
+        pad.innerHTML = "";
+        allButtons.forEach(p => {
+            let btn = document.createElement('button');
+            btn.className = 'prime-btn';
+            btn.innerText = p;
+            btn.onclick = () => handlePrimeClick(p);
+            pad.appendChild(btn);
+        });
+
+        startTime = Date.now();
+        clearInterval(timerInterval);
+        timerInterval = setInterval(updateTimer, 100);
+    }
+
+    function handlePrimeClick(p) {
+        if (currentNumber % p === 0) {
+            divisionSteps.push({ divisor: p, dividend: currentNumber });
+            currentNumber /= p;
+            usedFactors.push(p);
+            updateDisplay();
+            showMessage(`Correct! Divided by ${p}.`, "success-text");
+
+            if (currentNumber === 1) {
+                handleWin();
+            }
+        } else {
+            if (mistakesLeft > 0) {
+                mistakesLeft--;
+                document.getElementById('lives').innerText = mistakesLeft;
+                showMessage(`Oops! ${currentNumber} isn't divisible by ${p}. Last attempt left!`, "error-text");
+            } else {
+                handleLoss();
+            }
+        }
+    }
+
+    function updateScoresAndRecords(finalTime) {
+        if (currentLevel === 1) {
+            successL1++;
+            if (recordL1 === null || finalTime < recordL1) recordL1 = finalTime;
+        } else if (currentLevel === 2) {
+            successL2++;
+            if (recordL2 === null || finalTime < recordL2) recordL2 = finalTime;
+        } else {
+            successL3++;
+            if (recordL3 === null || finalTime < recordL3) recordL3 = finalTime;
+        }
+        
+        totalScore = (successL1 * 1) + (successL2 * 2) + (successL3 * 3);
+        
+        document.getElementById('score-l1').innerText = successL1;
+        document.getElementById('score-l2').innerText = successL2;
+        document.getElementById('score-l3').innerText = successL3;
+        document.getElementById('total-score').innerText = totalScore;
+
+        document.getElementById('rec-l1').innerText = recordL1 !== null ? recordL1.toFixed(1) + 's' : '-';
+        document.getElementById('rec-l2').innerText = recordL2 !== null ? recordL2.toFixed(1) + 's' : '-';
+        document.getElementById('rec-l3').innerText = recordL3 !== null ? recordL3.toFixed(1) + 's' : '-';
+
+        if (totalScore >= 15 && !databaseSavedFlag) {
+            triggerChatbotPopup();
+        }
+    }
+
+    function triggerChatbotPopup() {
+        document.getElementById("chatbot-overlay").style.display = "flex";
+    }
+
+    function submitPrizeForm() {
+        const nameVal = document.getElementById("student-name").value.trim();
+        const classVal = document.getElementById("student-class").value;
+        const numVal = document.getElementById("student-number").value;
+        const submitBtn = document.getElementById("chat-submit");
+
+        if (!nameVal) {
+            alert("Please enter your name before submitting!");
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Saving Data...";
+
+        if (typeof google !== 'undefined' && google.script && google.script.run) {
+            google.script.run
+                .withSuccessHandler(function(response) {
+                    if(response === "Success") {
+                        databaseSavedFlag = true; 
+                        document.getElementById("chatbot-overlay").style.display = "none";
+                        alert("Great job! Your score records are recorded safely. Keep playing!");
+                    } else {
+                        alert("Sheet error: " + response);
+                        submitBtn.disabled = false;
+                        submitBtn.innerText = "Submit Data ➔";
+                    }
+                })
+                .withFailureHandler(function(err) {
+                    alert("Network error: " + err);
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = "Submit Data ➔";
+                })
+                .recordStudentData(nameVal, classVal, numVal);
+        } else {
+            console.log("Local Test Submission:", { nameVal, classVal, numVal });
+            setTimeout(() => {
+                databaseSavedFlag = true;
+                document.getElementById("chatbot-overlay").style.display = "none";
+                alert("[Local Test] Data tracked successfully!");
+            }, 800);
+        }
+    }
+
+    function handleWin() {
+        clearInterval(timerInterval);
+        let finalTime = (Date.now() - startTime) / 1000;
+        updateScoresAndRecords(finalTime);
+        
+        document.getElementById('prime-pad').style.display = "none";
+        document.getElementById('active-game-area').style.display = "none";
+        document.getElementById('mistakes-container').style.display = "none"; 
+        
+        usedFactors.sort((a, b) => a - b);
+        let factorCounts = {};
+        usedFactors.forEach(f => factorCounts[f] = (factorCounts[f] || 0) + 1);
+
+        let expandedStr = usedFactors.join(' &times; ');
+        let indexStrArr = [];
+        for (const [base, exp] of Object.entries(factorCounts)) {
+            indexStrArr.push(exp > 1 ? `${base}<sup>${exp}</sup>` : `${base}`);
+        }
+        let indexStr = indexStrArr.join(' &times; ');
+
+        let finalMathHTML = `
+        <div class="math-result">
+            <div class="aligned-math">
+                <div class="math-row">
+                    <div class="math-col-left">${originalNumber}</div>
+                    <div class="math-col-right">= ${expandedStr}</div>
+                </div>`;
+        if (expandedStr !== indexStr) {
+            finalMathHTML += `
+                <div class="math-row">
+                    <div class="math-col-left"></div>
+                    <div class="math-col-right">= ${indexStr}</div>
+                </div>`;
+        }
+        finalMathHTML += `</div></div>`;
+
+        let tempNumber = originalNumber;
+        let sortedSdHTML = '<div class="sd-grid">';
+        
+        for (let i = 0; i < usedFactors.length; i++) {
+            let f = usedFactors[i];
+            if (i < usedFactors.length - 1) {
+                sortedSdHTML += `<div class="sd-divisor">${f} )</div><div class="sd-dividend">${tempNumber}</div>`;
+            }
+            tempNumber /= f;
+        }
+        
+        let finalPrime = usedFactors[usedFactors.length - 1];
+        sortedSdHTML += `<div></div><div class="sd-final">${finalPrime}</div>`;
+        sortedSdHTML += '</div>';
+
+        const resultsArea = document.getElementById('final-results-area');
+        resultsArea.innerHTML = `
+            ${finalMathHTML}
+            <div class="final-sd-wrapper">${sortedSdHTML}</div>
+        `;
+        resultsArea.style.display = "flex";
+
+        showMessage(`Excellent! Finished in ${finalTime.toFixed(1)} seconds.`, "success-text");
+        document.getElementById('next-btn').innerText = "Next Round ➔";
+        document.getElementById('next-btn').style.display = "block";
+    }
+
+    function handleLoss() {
+        clearInterval(timerInterval);
+        document.getElementById('prime-pad').style.display = "none";
+        document.getElementById('mistakes-container').style.display = "none"; 
+        showMessage(`Unlucky! Let's review factors and try this level again.`, "error-text");
+        document.getElementById('next-btn').innerText = "Try Again ➔";
+        document.getElementById('next-btn').style.display = "block";
+    }
+
+    function updateDisplay() {
+        document.getElementById('original-display').innerText = `Target: ${originalNumber}`;
+        document.getElementById('current-display').innerText = currentNumber;
+
+        if (divisionSteps.length > 0) {
+            let sdHTML = '<div class="sd-grid">';
+            let stepsToRender = divisionSteps.filter(step => step.dividend !== step.divisor);
+            
+            stepsToRender.forEach(step => {
+                sdHTML += `<div class="sd-divisor">${step.divisor} )</div><div class="sd-dividend">${step.dividend}</div>`;
+            });
+            
+            if (currentNumber === 1 && divisionSteps.length > 0) {
+                let lastPrime = divisionSteps[divisionSteps.length - 1].divisor;
+                sdHTML += `<div></div><div class="sd-final">${lastPrime}</div>`;
+            } else if (divisionSteps.length > 0) {
+                sdHTML += `<div></div><div class="sd-final">${currentNumber}</div>`;
+            }
+            
+            sdHTML += '</div>';
+            document.getElementById('short-division-area').innerHTML = sdHTML;
+        }
+    }
+
+    function showMessage(msg, className) {
+        const msgArea = document.getElementById('message-area');
+        msgArea.innerHTML = `<span class="${className}">${msg}</span>`;
+    }
+
+    function updateTimer() {
+        let elapsed = (Date.now() - startTime) / 1000;
+        document.getElementById('timer').innerText = elapsed.toFixed(1);
+    }
+</script>
+
+</body>
+</html>
