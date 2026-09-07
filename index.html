@@ -26,24 +26,26 @@
             text-align: center;
             margin: 0;
             padding: 8px;
-            height: 100vh;
+            min-height: 100dvh;
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: center;
-            overflow: hidden; 
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         #game-container {
             width: 100%;
-            max-width: 480px; 
-            height: 96vh; 
+            max-width: 480px;
+            min-height: calc(100dvh - 16px);
+            height: auto;
             background: var(--card);
             padding: 12px;
             border-radius: 15px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
             position: relative;
         }
 
@@ -127,14 +129,15 @@
 
         /* --- Active Game Area (Mobile Fluid Stack Layout) --- */
         #active-game-area {
-            display: none; 
-            flex-direction: column; 
+            display: none;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 10px;
-            margin: 5px 0;
-            flex-grow: 1; 
-            overflow-y: auto;
+            gap: 8px;
+            margin: 4px 0;
+            flex-grow: 0;
+            min-height: 150px;
+            overflow: visible;
         }
 
         #number-column {
@@ -200,10 +203,11 @@
 
         /* --- Prime Pad Grid Compacted for Mobile Keyboards --- */
         #prime-pad {
-            display: none; 
+            display: none;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            margin-top: 5px;
+            margin-top: 6px;
+            width: 100%;
         }
 
         .prime-btn {
@@ -211,8 +215,8 @@
             color: white;
             border: none;
             border-radius: 8px;
-            padding: 10px; 
-            font-size: 1.1rem;
+            padding: 9px 6px;
+            font-size: 1.05rem;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 3px 4px rgba(0,0,0,0.1);
@@ -379,27 +383,54 @@
         @media (min-width: 600px) {
             #game-container {
                 max-width: 820px;
+                padding: 14px 18px;
             }
-            h1 { font-size: 1.8rem; }
+
+            h1 {
+                font-size: 1.7rem;
+            }
+
             .stats-panel {
-                font-size: 1.1rem;
-                padding: 16px 20px;
+                font-size: 1.05rem;
+                padding: 14px 18px;
             }
-            #active-game-area { flex-direction: row; gap: 50px; } 
-            .number-display { font-size: 3.5rem; }
-            .sd-grid { font-size: 1.9rem; }
-            .prime-btn { padding: 14px; font-size: 1.4rem; }
+
             .level-controls button {
-                min-width: 155px;
-                padding: 15px 24px;
-                font-size: 1.15rem;
+                min-width: 145px;
+                padding: 12px 20px;
+                font-size: 1.1rem;
             }
 
             .level-controls button small {
-                font-size: 0.9rem;
+                font-size: 0.85rem;
             }
-            #ready-display { font-size: 1.6rem; }
-            #final-results-area { flex-direction: row; }
+
+            #active-game-area {
+                flex-direction: row;
+                gap: 38px;
+                min-height: 180px;
+            }
+
+            .number-display {
+                font-size: 3.2rem;
+            }
+
+            .sd-grid {
+                font-size: 1.7rem;
+            }
+
+            .prime-btn {
+                padding: 11px;
+                font-size: 1.2rem;
+            }
+
+            #ready-display {
+                font-size: 1.45rem;
+            }
+
+            #final-results-area {
+                flex-direction: row;
+            }
         }
     </style>
 </head>
