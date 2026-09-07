@@ -57,11 +57,11 @@
         .stats-panel {
             background: var(--primary);
             color: white;
-            padding: 8px 10px;
-            border-radius: 8px;
-            margin-bottom: 4px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            margin-bottom: 8px;
             font-weight: bold;
-            font-size: 0.8rem;
+            font-size: 0.95rem;
         }
 
         .stats-row {
@@ -104,13 +104,20 @@
         .level-controls button {
             background-color: #E5E7EB;
             border: none;
-            padding: 6px 12px;
-            margin: 2px;
-            font-size: 0.85rem;
-            border-radius: 6px;
+            padding: 12px 18px;
+            margin: 4px;
+            min-width: 120px;
+            font-size: 1rem;
+            line-height: 1.35;
+            border-radius: 8px;
             cursor: pointer;
             transition: 0.2s;
             font-weight: bold;
+        }
+
+        .level-controls button small {
+            font-size: 0.82rem;
+            font-weight: normal;
         }
 
         .level-controls button.active {
@@ -374,11 +381,23 @@
                 max-width: 820px;
             }
             h1 { font-size: 1.8rem; }
-            .stats-panel { font-size: 0.95rem; }
+            .stats-panel {
+                font-size: 1.1rem;
+                padding: 16px 20px;
+            }
             #active-game-area { flex-direction: row; gap: 50px; } 
             .number-display { font-size: 3.5rem; }
             .sd-grid { font-size: 1.9rem; }
             .prime-btn { padding: 14px; font-size: 1.4rem; }
+            .level-controls button {
+                min-width: 155px;
+                padding: 15px 24px;
+                font-size: 1.15rem;
+            }
+
+            .level-controls button small {
+                font-size: 0.9rem;
+            }
             #ready-display { font-size: 1.6rem; }
             #final-results-area { flex-direction: row; }
         }
@@ -405,14 +424,20 @@
     </div>
 
     <div class="level-controls" id="level-selection">
-        <button id="btn-lvl1" class="active" onclick="selectLevel(1)">Level One</button>
-        <button id="btn-lvl2" onclick="selectLevel(2)">Level Two</button>
-        <button id="btn-lvl3" onclick="selectLevel(3)">Level Three</button>
+    <button id="btn-lvl1" class="active" onclick="selectLevel(1)">
+        Level One<br><small>1 mark</small>
+    </button>
+    <button id="btn-lvl2" onclick="selectLevel(2)">
+        Level Two<br><small>2 marks</small>
+    </button>
+    <button id="btn-lvl3" onclick="selectLevel(3)">
+        Level Three<br><small>3 marks</small>
+    </button>
     </div>
 
     <button id="start-btn" class="action-btn" onclick="startRound()">Start Game</button>
 
-    <div id="ready-display">Score at least 15 marks to collect your prize!</div>
+    <div id="ready-display">Score as many marks as you can!</div>
 
     <div id="active-game-area">
         <div id="number-column">
@@ -470,6 +495,7 @@
 
 <script>
     // --- Game Variables ---
+    const ALLOWED_PRIMES = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37];
     let currentLevel = 1;
     let originalNumber = 0;
     let currentNumber = 0;
@@ -536,11 +562,17 @@
     }
 
     function generateValidNumber(min, max) {
-        let num;
-        do {
-            num = Math.floor(Math.random() * (max - min + 1)) + min;
-        } while (!(num % 2 === 0 || num % 3 === 0 || num % 5 === 0));
-        return num;
+    let validNumbers = [];
+
+    for (let num = min; num <= max; num++) {
+        const factors = getUniquePrimeFactors(num);
+
+        if (factors.length > 0 && factors.every(factor => ALLOWED_PRIMES.includes(factor))) {
+            validNumbers.push(num);
+        }
+    }
+
+    return validNumbers[Math.floor(Math.random() * validNumbers.length)];
     }
 
     function selectLevel(lvl) {
@@ -593,21 +625,13 @@
         } else if (currentLevel === 2) {
             originalNumber = generateValidNumber(100, 500);
         } else {
-            originalNumber = generateValidNumber(501, 3000);
+            originalNumber = generateValidNumber(501, 1200);
         }
         
         currentNumber = originalNumber;
         updateDisplay();
 
-        let actualFactors = getUniquePrimeFactors(originalNumber);
-        let baseSet = [2, 3, 5]; 
-        let combinedSet = new Set([...baseSet, ...actualFactors]);
-        
-        let maxDistractor = currentLevel === 1 ? 40 : (currentLevel === 2 ? 90 : 250);
-        let distractors = generateRandomPrimes(12 - combinedSet.size, combinedSet, maxDistractor);
-        
-        let allButtons = [...Array.from(combinedSet), ...distractors];
-        allButtons.sort((a, b) => a - b); 
+        let allButtons = [...ALLOWED_PRIMES];
 
         const pad = document.getElementById('prime-pad');
         pad.innerHTML = "";
